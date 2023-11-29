@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: efss
+  namespace: {{.Values.namespace}}
+spec:
+  capacity:
+    storage: 5Gi
+  volumeMode: Filesystem
+  accessModes:
+    - ReadWriteMany
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: efss
+  csi:
+    driver: efs.csi.aws.com
+    volumeHandle: {{.Values.efs_id}}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jenkinsdata
+  namespace: {{.Values.namespace}}
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: efss
+  resources:
+    requests:
+      storage: 5Gi
+  volumeName: efss
+  volumeMode: Filesystem

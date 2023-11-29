@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.pods_names.worker_name }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ .Values.pods_names.worker_name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.pods_names.worker_name }}
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.pods_names.worker_name }}
+    spec:
+      containers:
+      - name: {{ .Values.pods_names.worker_name }}
+        image: docker:dind
+        resources:
+          requests:
+            cpu: "1000m"
+            memory: "2Gi"
+          limits:
+            cpu: "2000m"
+            memory: "4Gi"
+        env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+        ports:
+        - containerPort: 2376
+        - containerPort: 2375
+        securityContext:
+          privileged: true
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: deamon
+  namespace: {{ .Values.namespace }}
+spec:
+  ports:
+  - port: 2376
+    targetPort: 2376
+    protocol: TCP
+    name: port1
+  - port: 2375
+    targetPort: 2375
+    protocol: TCP
+    name: port2
+  selector:
+    app: {{ .Values.pods_names.worker_name }}

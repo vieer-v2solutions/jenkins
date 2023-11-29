@@ -1,0 +1,7 @@
+namespace : jenkins
+jenkins_image : vieerd/poc:jenkins
+pods_names:
+    master_name : jenkins-master
+    worker_name : jenkins-worker
+efs_id : tmp
+secretManagerRegion : us-east-1

@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{.Values.pods_names.master_name}}
+  namespace: {{.Values.namespace}}
+  labels:
+    app: {{.Values.pods_names.master_name}}
+spec:
+  selector:
+    matchLabels:
+      app: {{.Values.pods_names.master_name}}
+  replicas: 1
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: {{.Values.pods_names.master_name}}
+    spec:
+      containers:
+      - name: {{.Values.pods_names.master_name}}
+        image: {{.Values.jenkins_image}}
+        resources:
+          requests:
+            cpu: 1000m
+            memory: 2Gi
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+        ports:
+        - containerPort: 8080
+        - containerPort: 50000
+          name: {{.Values.pods_names.master_name}}
+        volumeMounts:
+        - mountPath: /var/jenkins_home
+          name: data
+          subPath: jenkins_home
+      securityContext:
+        runAsUser: 0
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: jenkinsdata
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: "{{.Values.pods_names.master_name}}"
+  namespace: {{.Values.namespace}}
+spec:
+  type: LoadBalancer
+  ports:
+  - port: 80
+    targetPort: 8080 
+    protocol: TCP
+    name: {{.Values.pods_names.master_name}}
+  - name: https
+    port: 443
+    targetPort: 8080
+  selector:
+    app: {{.Values.pods_names.master_name}}
